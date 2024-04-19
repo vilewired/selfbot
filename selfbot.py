@@ -3,6 +3,7 @@ import functools
 import operator as op
 import os
 import random
+import sys
 import traceback
 
 import discord
@@ -22,6 +23,7 @@ operators = {
     ast.Pow: op.pow,
     ast.BitXor: op.xor,
     ast.USub: op.neg,
+    ast.FloorDiv: op.floordiv,
 }
 
 
@@ -77,7 +79,9 @@ async def on_command_error(ctx: commands.Context, error):
             f"Command not found {ctx.command}: {''.join(traceback.format_tb(error.__traceback__))}"
         )
     else:
-        print(f"Command: {ctx.command}\nError: {error}")
+        traceback.print_exception(
+            type(error), error, error.__traceback__, file=sys.stderr
+        )
 
 
 @bot.event
@@ -132,12 +136,14 @@ async def on_message(message: discord.Message) -> None:
 @bot.command()
 @cmd()
 async def calculate(ctx, *expression: str) -> None:
+    print("a")
     if expression == ():
         return
     expression = " ".join(expression)
+    print(f"expression: {expression}")
     expr = await eval_(node=ast.parse(expression, mode="eval").body)
     if expr is not None:
-        await ctx.send(str(object=expression))
+        await ctx.send(str(object=eval(expression)))
 
 
 @bot.command()
