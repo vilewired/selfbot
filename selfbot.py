@@ -6,6 +6,7 @@ import traceback
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
+from pyurbandict import UrbanDict
 
 load_dotenv()
 token: str = os.getenv(key="TOKEN")
@@ -102,8 +103,11 @@ async def on_message(message: discord.Message) -> None:
 
 @bot.command()
 @cmd()
-async def add(ctx, left: int, right: int) -> None:
-    await ctx.send(left + right)
+async def calculate(ctx, *expression: str) -> None:
+    if expression == ():
+        return
+    expression = " ".join(expression)
+    await ctx.send(str(object=eval(expression)))
 
 
 @bot.command()
@@ -122,6 +126,18 @@ async def spam(ctx, times: int, *content) -> None:
         await ctx.send(
             " ".join(list(content)) if isinstance(content, tuple) else content
         )
+
+
+@bot.command()
+@cmd()
+async def slang(ctx, *words):
+    if words == ():
+        return
+    words = " ".join(words)
+    word = UrbanDict(words)
+    results = word.search()
+
+    await ctx.send(results[0].definition + "\n\n" + results[0].example)
 
 
 @bot.command()
