@@ -1,4 +1,6 @@
+import ast
 import functools
+import operator as op
 import os
 import random
 import traceback
@@ -9,14 +11,38 @@ from dotenv import load_dotenv
 from pyurbandict import UrbanDict
 
 load_dotenv()
+
 token: str = os.getenv(key="TOKEN")
 devchannel = int(os.getenv(key="DEVCHANNEL"))
+operators = {
+    ast.Add: op.add,
+    ast.Sub: op.sub,
+    ast.Mult: op.mul,
+    ast.Div: op.truediv,
+    ast.Pow: op.pow,
+    ast.BitXor: op.xor,
+    ast.USub: op.neg,
+}
+
+
 bot = commands.Bot(command_prefix=">", self_bot=True)
 bot.remove_command("help")
 
 
 def is_me(m) -> bool:
     return m.author == bot.user
+
+
+async def eval_(node):
+    match node:
+        case ast.Constant(value) if isinstance(value, int):
+            return value  # integer
+        case ast.BinOp(left, op, right):
+            return operators[type(op)](eval_(node=left), eval_(node=right))
+        case ast.UnaryOp(op, operand):  # e.g., -1
+            return operators[type(op)](eval_(node=operand))
+        case _:
+            return None
 
 
 def cmd():
@@ -107,7 +133,9 @@ async def calculate(ctx, *expression: str) -> None:
     if expression == ():
         return
     expression = " ".join(expression)
-    await ctx.send(str(object=eval(expression)))
+    expr = eval_(node=ast.parse(expression, mode="eval").body)
+    if expr is not None:
+        await ctx.send(str(object=expression))
 
 
 @bot.command()
