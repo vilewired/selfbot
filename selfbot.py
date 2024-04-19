@@ -38,9 +38,11 @@ async def eval_(node):
         case ast.Constant(value) if isinstance(value, int):
             return value  # integer
         case ast.BinOp(left, op, right):
-            return operators[type(op)](eval_(node=left), eval_(node=right))
+            return operators[type(op)](
+                (await eval_(node=left)), (await eval_(node=right))
+            )
         case ast.UnaryOp(op, operand):  # e.g., -1
-            return operators[type(op)](eval_(node=operand))
+            return operators[type(op)](await eval_(node=operand))
         case _:
             return None
 
@@ -133,7 +135,7 @@ async def calculate(ctx, *expression: str) -> None:
     if expression == ():
         return
     expression = " ".join(expression)
-    expr = eval_(node=ast.parse(expression, mode="eval").body)
+    expr = await eval_(node=ast.parse(expression, mode="eval").body)
     if expr is not None:
         await ctx.send(str(object=expression))
 
