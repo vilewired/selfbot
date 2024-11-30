@@ -136,7 +136,6 @@ async def on_message(message: discord.Message) -> None:
 @bot.command()
 @cmd()
 async def calculate(ctx, *expression: str) -> None:
-    print("a")
     if expression == ():
         return
     expression = " ".join(expression)
